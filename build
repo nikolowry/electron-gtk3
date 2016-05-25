@@ -1,3 +1,70 @@
 #!/bin/sh
 
-git submodule update --init --recursive
+#Current working directory
+cwd=$(dirname $(realpath $0))
+
+#Valid flags
+flags=("-t|--target_arch")
+
+#Libchromiumcontent
+libchromiumcontent_bootstrap() {
+    echo 'Libchromiumcontent Bootstrap'
+}
+libchromiumcontent_patch() {
+    echo 'Libchromiumcontent Patch'
+}
+libchromiumcontent_build() {
+    echo 'Libchromiumcontent Build'
+}
+libchromiumcontent_createDist() {
+    echo 'Libchromiumcontent CreateDist'
+}
+
+#Electron
+electron_bootstrap() {
+    echo 'Electron Bootstrap'
+}
+electron_patch() {
+    echo 'Electron Patch'
+}
+electron_build() {
+    echo 'Electron Build'
+}
+electron_createDist() {
+    echo 'Electron CreateDist'
+}
+
+# Main
+main() {
+    #Clone Electron and it's submodules
+    git submodule update --init --recursive
+
+    #Load ./utils/*.sh helpers
+    for f in $(find ${cwd}/utils -name '*.sh'); do
+        . $f
+    done
+
+    #Parse Command Line Args
+    if [[ $@ ]]; then
+        eval $(argsToArray $@)
+
+        #Valid args are present
+        if [[ $args ]]; then
+            getArg --target_arch
+        fi
+    fi
+
+    #Bootstrap, patch and build Libchromiumcontent
+    libchromiumcontent_bootstrap
+    libchromiumcontent_patch
+    libchromiumcontent_build
+    libchromiumcontent_createDist
+
+    #Bootstrap, patch and build Electron
+    electron_bootstrap
+    electron_patch
+    electron_build
+    electron_createDist
+}
+
+main $@

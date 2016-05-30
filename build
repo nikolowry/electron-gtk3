@@ -4,39 +4,47 @@
 cwd=$(dirname $(realpath $0))
 
 #Valid flags
-flags=("-t|--target_arch")
+flags=(
+    "-t|--target_arch"
+    "-h|--help"
+)
 
 #Libchromiumcontent
 libchromiumcontent_bootstrap() {
+    cd $cwd/electron/vendor/brightray/vendor/libchromiumcontent
     echo 'Libchromiumcontent Bootstrap'
 }
-libchromiumcontent_patch() {
-    echo 'Libchromiumcontent Patch'
-}
 libchromiumcontent_build() {
+    cd $cwd/electron/vendor/brightray/vendor/libchromiumcontent
     echo 'Libchromiumcontent Build'
 }
-libchromiumcontent_createDist() {
+libchromiumcontent_dist() {
+    cd $cwd/electron/vendor/brightray/vendor/libchromiumcontent
     echo 'Libchromiumcontent CreateDist'
 }
 
 #Electron
 electron_bootstrap() {
+    cd $cwd/electron
     echo 'Electron Bootstrap'
 }
-electron_patch() {
-    echo 'Electron Patch'
-}
 electron_build() {
+    cd $cwd/electron/vendor/brightray/
+
+    cd $cwd/electron
     echo 'Electron Build'
 }
-electron_createDist() {
+electron_dist() {
+    cd $cwd/electron
     echo 'Electron CreateDist'
 }
 
 # Main
 main() {
-    #Clone Electron and it's submodules
+    #Available FNs
+    funcs=$(typeset -f | awk '/ \(\) $/ && !/^(main) / {print $1}')
+
+    #Update local Electron and it's submodules
     git submodule update --init --recursive
 
     #Load ./utils/*.sh helpers
@@ -47,24 +55,36 @@ main() {
     #Parse Command Line Args
     if [[ $@ ]]; then
         eval $(argsToArray $@)
-
-        #Valid args are present
-        if [[ $args ]]; then
-            getArg --target_arch
-        fi
     fi
 
-    #Bootstrap, patch and build Libchromiumcontent
-    libchromiumcontent_bootstrap
-    libchromiumcontent_patch
-    libchromiumcontent_build
-    libchromiumcontent_createDist
+    if [[ $@ =~ -h|--help ]]; then
+        #Help Menu
+        help $funcs
+    else
+        #Get arch type if passed
+        arch=$(getArg --target_arch)
 
-    #Bootstrap, patch and build Electron
-    electron_bootstrap
-    electron_patch
-    electron_build
-    electron_createDist
+        #Validate arch type
+        if [[ $arch ]]; then
+            echo $arch
+        fi
+
+        #Is Command Function
+        if [[ $1 && $funcs =~ $1 ]]; then
+            $1
+        #No Command, execute all
+        else
+            #Bootstrap, patch and build Libchromiumcontent
+            libchromiumcontent_bootstrap
+            libchromiumcontent_build
+            libchromiumcontent_dist
+
+            #Bootstrap, patch and build Electron
+            electron_bootstrap
+            electron_build
+            electron_dist
+        fi
+    fi
 }
 
 main $@

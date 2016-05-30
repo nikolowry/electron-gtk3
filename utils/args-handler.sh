@@ -33,7 +33,23 @@ argsToArray() {
 #Get An Arg
 getArg() {
     if [[ $flags && $args && ${#args[*]} > 0 ]]; then
-        #TODO return if valid arg, for now echo fn parameter
-        echo $@
+        for argItem in ${args[*]}; do
+            argItemArr=(${argItem//=/ })
+            key=${argItemArr[0]};
+            val=${argItemArr[1]};
+
+            #Match to flag
+            index=0; while ((index < ${#flags[*]})); do
+                #Get cases from flag array
+                flagArr=(${flags[$index]//|/ })
+
+                #If valid push to args
+               case $key in ${flagArr[0]}|${flagArr[1]})
+                   echo $val
+                   return
+                shift ;;
+                esac
+            ((index++)); done
+        done
     fi
 }

@@ -3,6 +3,7 @@
 #Valid flags
 flags=(
     '-t|--target_arch'
+    '-c|--components'
     '-h|--help')
 
 #Realpath to Current Working Directory
@@ -12,6 +13,11 @@ CWD=$(dirname $(realpath $0));
 ELECTRON_PATH="$CWD/electron";
 BRIGHTRAY_PATH="$ELECTRON_PATH/vendor/brightray";
 LIBCHROMIUM_PATH="$BRIGHTRAY_PATH/vendor/libchromiumcontent";
+
+#Pkg-Config
+sysPkgs="gtk+-3.0 wayland-protocols gl egl glib-2.0 x11 gdk-3.0
+        gmodule-2.0 gthread-2.0 gtk+-unix-print-3.0
+        libpulse atk"
 
 #Libchromiumcontent
 libchromiumcontent_bootstrap() {
@@ -41,34 +47,87 @@ libchromiumcontent_bootstrap() {
 }
 libchromiumcontent_build() {
     #TODO: integrate pkg-config in a more friendly way
-    sys_pkgs="gtk+-3.0 wayland-protocols gl egl glib-2.0 x11 gdk-3.0
-            gmodule-2.0 gthread-2.0 gtk+-unix-print-3.0
-            libpulse atk"
-
-    pkg-config --cflags $sys_pkgs --libs $sys_pkgs
+    pkg-config --cflags $sysPkgs --libs $sysPkgs
     export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig;
+
+    #Build type
+    if [[ $components == 'static' ]]; then
+        component_flag="--no_shared_library"
+    fi
 
     #Build
     cd $LIBCHROMIUM_PATH;
-    python script/build -t $arch;
+    python script/build $component_flag -t $arch;
 }
 libchromiumcontent_dist() {
+    #Build type
+    if [[ $components == 'static' ]]; then
+        component_flag="-c static_library"
+    fi
+
     cd $LIBCHROMIUM_PATH;
-    python script/create-dist -t $arch;
+    python script/create-dist $component_flag -t $arch --no_zip;
 }
 
 #Electron
 electron_bootstrap() {
+    cd $CWD
+
+    #Brightray fails if files aren't in brightray/vendor/download
+    DL_PATH=$BRIGHTRAY_PATH/vendor/download;
+    LIBCC_PATH=$DL_PATH/libchromiumcontent;
+
+    mkdir -p $DL_PATH;
+    mkdir -p $LIBCC_PATH;
+
+    ln -sf $LIBCHROMIUM_PATH/dist/main/ffmpeg $LIBCC_PATH/ffmpeg
+    ln -sf $LIBCHROMIUM_PATH/dist/main/src $LIBCC_PATH/src
+    ln -sf $LIBCHROMIUM_PATH/dist/main/static_library $LIBCC_PATH/static_library
+
+    if [[ $components == 'all' ]]; then
+        ln -sf $LIBCHROMIUM_PATH/dist/main/shared_library $LIBCC_PATH/shared_library
+    else
+        mkdir -p $LIBCC_PATH/shared_library
+    fi
+
+    #TODO update install-sysroot.py to use jessie
+    patch -N $ELECTRON_PATH/script/bootstrap.py \
+        < patches/electron-bootstrap.patch
+
     cd $ELECTRON_PATH;
-    echo 'Electron Bootstrap';
+
+    #Update toolchain
+    sed -e "s|'sysroot%': '<(sysroot)'|'sysroot%': ''|" \
+        -e "s|'--sysroot=<(sysroot)',||" \
+        -e "s|'<!(<(source_root)/tools/linux/sysroot_ld_path.sh <(sysroot))',||" \
+        -e 's|<(source_root)/tools/linux/pkg-config-wrapper "<(sysroot)" "<(target_arch)" "<(system_libdir)"|pkg-config|' \
+        -i toolchain.gypi
+
+    #Update brightray
+    sed -e "s|'linux_system_libraries': 'gtk+-2.0|'linux_system_libraries': 'gtk+-3.0|" \
+        -i vendor/brightray/brightray.gyp
+
+    #Local libchromiumcontent flags
+    #Pull Request Opportunity, script/bootstrap.py wrongly requires
+    #libcc_shared_library_path when building only the release version
+    libcc_flag="--libcc_source_path="$LIBCC_PATH"/src
+                --libcc_static_library_path="$LIBCC_PATH"/static_library
+                --libcc_shared_library_path="$LIBCC_PATH"/shared_library";
+
+    python script/bootstrap.py -v $libcc_flag --target_arch=$arch
 }
 electron_build() {
     cd $ELECTRON_PATH;
-    echo 'Electron Build';
+    
+    if [[ $components == "static" ]]; then
+        build_flag="-c R"
+    fi
+
+    python script/build.py $build_flag;
 }
 electron_dist() {
     cd $ELECTRON_PATH;
-    echo 'Electron CreateDist';
+    python script/create-dist.py
 }
 
 #Clean
@@ -122,6 +181,12 @@ main() {
 
         OG_PATH=($(echo $PATH|sed "s|${PYENV_PATH}:||g"))
         export PATH=$PYENV_PATH:$OG_PATH
+    fi
+
+    #Build components | Defaults to Release
+    components=$(getArg --components)
+    if [[ ! $components || $components != 'static' ]]; then
+        components='all'
     fi
 
     #Is Command Function

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-help() {
+helpMenu() {
     #ensure shell scripting compatability w echo for newline
     echo "Usage: ./build <command> <options>" && echo ""
 

@@ -80,9 +80,6 @@ main() {
         $1
     #No Command, execute all
     else
-        #Always update submodules when running all commands
-        git submodule update --init --recursive
-
         #Bootstrap, patch and build Libchromiumcontent
         libchromiumcontent_bootstrap
         libchromiumcontent_build

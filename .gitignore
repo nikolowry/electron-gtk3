@@ -1,3 +1,4 @@
 .atomignore
+.tmp
 electron/**/*
 !electron/package.json

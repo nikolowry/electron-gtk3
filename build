@@ -45,7 +45,7 @@ main() {
     if [[ $(find ./electron/ -maxdepth 1 -type d | wc -l) == 1 ]]; then
         git submodule update --init --recursive
     fi
-    
+
     #Load ./utils/*.sh helpers
     for f in $(find ${cwd}/utils -name '*.sh'); do
         . $f
@@ -72,9 +72,16 @@ main() {
 
     #Make sure we use Python 2 - ugh
     if [[ ! $(python --version) =~ 2 ]]; then
-        echo 'need set up python 2'
+        PYENV_PATH="$cwd/.tmp"
+
+        mkdir -p $PYENV_PATH
+        ln -sf /usr/bin/python2 "$PYENV_PATH/python"
+
+        OG_PATH=($(echo $PATH|sed "s|${PYENV_PATH}:||g"))
+        export PATH=$PYENV_PATH:$OG_PATH
     fi
 
+    echo $(python --version)
     #Is Command Function
     if [[ $1 && $funcs =~ $1 ]]; then
         $1
@@ -89,6 +96,11 @@ main() {
         electron_bootstrap
         electron_build
         electron_dist
+    fi
+
+    #Reset Python Path
+    if [[ $PYENV_PATH ]]; then
+        export PATH=$OG_PATH
     fi
 }
 

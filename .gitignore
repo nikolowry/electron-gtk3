@@ -1,5 +1,4 @@
 .atomignore
 .tmp
-patches/src
 electron/**/*
 !electron/package.json

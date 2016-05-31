@@ -41,7 +41,7 @@ electron_dist() {
 # Main
 main() {
     #Available FNs
-    funcs=$(typeset -f | awk '/ \(\) $/ && !/^(main) / {print $1}')
+    funcs=$(typeset -f | awk '/ \(\) $/ && !/^(main) / {print $1}');
 
     #Update local Electron and it's submodules
     git submodule update --init --recursive
@@ -56,34 +56,20 @@ main() {
         eval $(argsToArray $@);
     fi
 
-    #Help Menu
-    if [[ $@ =~ -h|--help ]]; then
+    #Get system architecture
+    arch=$(parseArch $(getArg --target_arch))
+
+    #Help Menu || Show if arch is un-detectable
+    if [[ $@ =~ -h|--help || ! $arch ]]; then
+        if [[ ! $arch ]]; then
+            echo "Unable to detect architecture type. Please refer to the help menu:";
+            echo "----";
+        fi
+
         help $funcs;
         return;
     fi
-
-    #Get arch type
-    archArg=$(getArg --target_arch);
-    arch64='x64 x86_64 amd64';
-    arch32='ia32 i686';
-
-    if [[ ! $arch64 =~ $archArg && ! $arch32 =~ $archArg ]]; then
-        archArg=$(uname -m);
-    fi
-
-    #Validate arch type
-    if [[ $arch64 =~ $archArg ]]; then
-        arch='x64';
-    elif [[ $arch32  =~ $archArg ]]; then
-        arch='ia32';
-    fi
-
-    #Exit if no arch detected
-    if [[ ! $arch ]]; then
-        echo "Unable to detect architecture type"
-        return
-    fi
-
+    
     #Is Command Function
     if [[ $1 && $funcs =~ $1 ]]; then
         $1

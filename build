@@ -73,8 +73,9 @@ main() {
     #Make sure we use Python 2 - ugh
     if [[ ! $(python --version) =~ 2 ]]; then
         PYENV_PATH="$cwd/.tmp"
-
         mkdir -p $PYENV_PATH
+
+        # TODO: figure out a bulletproof way to find python 2
         ln -sf /usr/bin/python2 "$PYENV_PATH/python"
 
         OG_PATH=($(echo $PATH|sed "s|${PYENV_PATH}:||g"))

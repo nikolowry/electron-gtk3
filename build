@@ -70,6 +70,11 @@ main() {
         return;
     fi
 
+    #Make sure we use Python 2 - ugh
+    if [[ ! $(python --version) =~ 2 ]]; then
+        echo 'need set up python 2'
+    fi
+
     #Is Command Function
     if [[ $1 && $funcs =~ $1 ]]; then
         $1

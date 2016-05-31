@@ -2,23 +2,23 @@
 
 helpMenu() {
     #ensure shell scripting compatability w echo for newline
-    echo "Usage: ./build <command> <options>" && echo ""
+    echo "Usage: ./build <command> <options>" && echo "";
 
     for cmd in $@; do
         if [[ $cmds ]]; then
-            cmds="$cmds, $cmd"
+            cmds="$cmds, $cmd";
         else
-            cmds=$cmd
+            cmds=$cmd;
         fi
     done
 
-    echo "Where <command> is:"
-    echo $cmds && echo ""
-    echo "If no <command> is passed then all commands will be executed." && echo ""
+    echo "Where <command> is:";
+    echo $cmds && echo "";
+    echo "If no <command> is passed, all commands will be executed." && echo "";
 
-    echo "Available <options>:"
+    echo "Available <options>:";
     for flag in ${flags[*]}; do
-        echo "  $flag"
+        echo "  $flag";
     done
-    echo ""
+    echo "";
 }

@@ -1,0 +1,31 @@
+diff --git a/electron/vendor/brightray/vendor/libchromiumcontent/script/update b/patches/src/libchromiumcontent-update.py
+index 3577b2a..c322ea6 100644
+--- a/electron/vendor/brightray/vendor/libchromiumcontent/script/update
++++ b/patches/src/libchromiumcontent-update.py
+@@ -31,19 +31,18 @@ def main():
+   if not is_source_tarball_updated(version):
+     download_source_tarball(version)
+ 
+-  if sys.platform == 'linux2':
+-    install_sysroot()
+-
+-  target_arch = args.target_arch
+-  return (apply_patches() or
+-          copy_chromiumcontent_files() or
+-          update_clang() or
+-          run_gyp(target_arch, args.defines))
++  if args.sync:
++    target_arch = args.target_arch
++    return (apply_patches() or
++            copy_chromiumcontent_files() or
++            update_clang() or
++            run_gyp(target_arch, args.defines))
+ 
+ 
+ def parse_args():
+   parser = argparse.ArgumentParser(description='Update build configuration')
+   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
++  parser.add_argument('-s', '--sync', action='store_true')
+   parser.add_argument('--defines', default='',
+                       help='The definetions passed to gyp')
+   return parser.parse_args()

@@ -12,11 +12,11 @@ argsToArray() {
             #Match to flag
             index=0; while ((index < ${#flags[*]})); do
                 #Get cases from flag array
-                flagArr=(${flags[$index]//|/ })
+                flagArr=(${flags[$index]//|/ });
 
                 #If valid push to args
                 case $1 in ${flagArr[0]}|${flagArr[1]})
-                    args[${#args[@]}]="$1=$2"
+                    args[${#args[@]}]="$1=$2";
                 shift ;;
                 esac
         	((index++)); done
@@ -34,18 +34,18 @@ argsToArray() {
 getArg() {
     if [[ $flags && $args && ${#args[*]} > 0 ]]; then
         for argItem in ${args[*]}; do
-            argItemArr=(${argItem//=/ })
+            argItemArr=(${argItem//=/ });
             key=${argItemArr[0]};
             val=${argItemArr[1]};
 
             #Match to flag
             index=0; while ((index < ${#flags[*]})); do
                 #Get cases from flag array
-                flagArr=(${flags[$index]//|/ })
+                flagArr=(${flags[$index]//|/ });
 
                 #If valid push to args
-               case $key in ${flagArr[0]}|${flagArr[1]})
-                   echo $val
+                case $key in ${flagArr[0]}|${flagArr[1]})
+                   echo $val;
                    return
                 shift ;;
                 esac

@@ -1,39 +1,75 @@
 #!/bin/sh
 
-#Current working directory
-cwd=$(dirname $(realpath $0))
+#Realpath to Current Working Directory
+CWD=$(dirname $(realpath $0));
+
+#Paths
+LIBCHROMIUM_PATH="$CWD/electron/vendor/brightray/vendor/libchromiumcontent";
+ELECTRON_PATH="$CWD/electron";
+BRIGHTRAY_PATH="$CWD/electron/vendor/brightray";
 
 #Valid flags
 flags=(
     '-t|--target_arch'
     '-h|--help')
 
-#Libchromiumcontent
 libchromiumcontent_bootstrap() {
-    cd $cwd/electron/vendor/brightray/vendor/libchromiumcontent
-    echo 'Libchromiumcontent Bootstrap'
+    cd $CWD
+    patch -N $LIBCHROMIUM_PATH/script/update \
+        < patches/libchromiumcontent-update.patch
+
+    #TODO update install-sysroot.py to use jessie
+    cd $LIBCHROMIUM_PATH;
+
+    #Sync libchromiumcontent submodules
+    script/bootstrap;
+
+    #Sed/runtime-patching, add use_gtk3 to defines
+    sed -e "s|'use_gtk3': 1, ||" \
+        -e "s|'use_dbus': 1,|'use_dbus': 1, 'use_gtk3': 1, |" \
+        -i chromiumcontent/chromiumcontent.gypi
+
+    #Download src
+    python script/update -t $arch;
+
+    #Sed/runtime-patching common.gypi
+    sed -e "s|'use_sysroot%': 1,|'use_sysroot%': 0,|" \
+        -i vendor/chromium/src/build/common.gypi
+
+    #Update gyp
+    python script/update -t $arch -s;
 }
 libchromiumcontent_build() {
-    cd $cwd/electron/vendor/brightray/vendor/libchromiumcontent
-    echo 'Libchromiumcontent Build'
+    #TODO: integrate pkg-config in a more friendly way
+    pkg-config --cflags gtk+-3.0 wayland-protocols gl egl glib-2.0 x11 \
+                        gdk-3.0 gmodule-2.0 gthread-2.0 gtk+-unix-print-3.0 \
+                        libpulse atk \
+                 --libs gtk+-3.0 wayland-protocols gl egl glib-2.0 x11 gdk-3.0 \
+                        gmodule-2.0 gthread-2.0 gtk+-unix-print-3.0 libpulse atk;
+
+    export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig;
+
+    #Build
+    cd $LIBCHROMIUM_PATH;
+    python script/build -t $arch;
 }
 libchromiumcontent_dist() {
-    cd $cwd/electron/vendor/brightray/vendor/libchromiumcontent
-    echo 'Libchromiumcontent CreateDist'
+    cd $LIBCHROMIUM_PATH;
+    python script/create-dist -t $arch;
 }
 
 #Electron
 electron_bootstrap() {
-    cd $cwd/electron
-    echo 'Electron Bootstrap'
+    cd $ELECTRON_PATH;
+    echo 'Electron Bootstrap';
 }
 electron_build() {
-    cd $cwd/electron
-    echo 'Electron Build'
+    cd $ELECTRON_PATH;
+    echo 'Electron Build';
 }
 electron_dist() {
-    cd $cwd/electron
-    echo 'Electron CreateDist'
+    cd $ELECTRON_PATH;
+    echo 'Electron CreateDist';
 }
 
 # Main
@@ -47,7 +83,7 @@ main() {
     fi
 
     #Load ./utils/*.sh helpers
-    for f in $(find ${cwd}/utils -name '*.sh'); do
+    for f in $(find ${CWD}/utils -name '*.sh'); do
         . $f
     done
 
@@ -62,7 +98,7 @@ main() {
     #Help Menu || Show if arch is un-detectable
     if [[ $@ =~ -h|--help || ! $arch ]]; then
         if [[ ! $arch ]]; then
-            echo "Unable to detect architecture type. Please refer to the help menu:";
+            echo "Unable to detect architecture type.";
             echo "----";
         fi
 
@@ -72,7 +108,7 @@ main() {
 
     #Make sure we use Python 2 - ugh
     if [[ ! $(python --version) =~ 2 ]]; then
-        PYENV_PATH="$cwd/.tmp"
+        PYENV_PATH="$CWD/.tmp"
         mkdir -p $PYENV_PATH
 
         # TODO: figure out a bulletproof way to find python 2
@@ -88,14 +124,14 @@ main() {
     #No Command, execute all
     else
         #Bootstrap, patch and build Libchromiumcontent
-        libchromiumcontent_bootstrap
-        libchromiumcontent_build
-        libchromiumcontent_dist
+        libchromiumcontent_bootstrap;
+        libchromiumcontent_build;
+        libchromiumcontent_dist;
 
         #Bootstrap, patch and build Electron
-        electron_bootstrap
-        electron_build
-        electron_dist
+        electron_bootstrap;
+        electron_build;
+        electron_dist;
     fi
 
     #Reset Python Path

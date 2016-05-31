@@ -41,12 +41,11 @@ libchromiumcontent_bootstrap() {
 }
 libchromiumcontent_build() {
     #TODO: integrate pkg-config in a more friendly way
-    pkg-config --cflags gtk+-3.0 wayland-protocols gl egl glib-2.0 x11 \
-                        gdk-3.0 gmodule-2.0 gthread-2.0 gtk+-unix-print-3.0 \
-                        libpulse atk \
-                 --libs gtk+-3.0 wayland-protocols gl egl glib-2.0 x11 gdk-3.0 \
-                        gmodule-2.0 gthread-2.0 gtk+-unix-print-3.0 libpulse atk;
+    sys_pkgs="gtk+-3.0 wayland-protocols gl egl glib-2.0 x11 gdk-3.0
+            gmodule-2.0 gthread-2.0 gtk+-unix-print-3.0
+            libpulse atk"
 
+    pkg-config --cflags $sys_pkgs --libs $sys_pkgs
     export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig;
 
     #Build

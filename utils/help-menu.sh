@@ -2,13 +2,13 @@
 
 helpMenu() {
     #ensure shell scripting compatability w echo for newline
-    echo "Usage: ./build <command> <options>" && echo "";
+    echo "Usage: ./build <command> <option>" && echo "";
 
     for cmd in $@; do
         if [[ $cmds ]]; then
             cmds="$cmds, $cmd";
         else
-            cmds=$cmd;
+            cmds="$cmd";
         fi
     done
 

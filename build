@@ -1,30 +1,30 @@
 #!/bin/sh
 
-#Realpath to Current Working Directory
-CWD=$(dirname $(realpath $0));
-
-#Paths
-LIBCHROMIUM_PATH="$CWD/electron/vendor/brightray/vendor/libchromiumcontent";
-ELECTRON_PATH="$CWD/electron";
-BRIGHTRAY_PATH="$CWD/electron/vendor/brightray";
-
 #Valid flags
 flags=(
     '-t|--target_arch'
     '-h|--help')
 
+#Realpath to Current Working Directory
+CWD=$(dirname $(realpath $0));
+
+#Paths
+ELECTRON_PATH="$CWD/electron";
+BRIGHTRAY_PATH="$ELECTRON_PATH/vendor/brightray";
+LIBCHROMIUM_PATH="$BRIGHTRAY_PATH/vendor/libchromiumcontent";
+
+#Libchromiumcontent
 libchromiumcontent_bootstrap() {
+    #TODO update install-sysroot.py to use jessie
     cd $CWD
     patch -N $LIBCHROMIUM_PATH/script/update \
         < patches/libchromiumcontent-update.patch
 
-    #TODO update install-sysroot.py to use jessie
-    cd $LIBCHROMIUM_PATH;
-
     #Sync libchromiumcontent submodules
-    script/bootstrap;
+    cd $LIBCHROMIUM_PATH;
+    python script/bootstrap;
 
-    #Sed/runtime-patching, add use_gtk3 to defines
+    #Use_gtk3 to defines via sed
     sed -e "s|'use_gtk3': 1, ||" \
         -e "s|'use_dbus': 1,|'use_dbus': 1, 'use_gtk3': 1, |" \
         -i chromiumcontent/chromiumcontent.gypi
@@ -32,7 +32,7 @@ libchromiumcontent_bootstrap() {
     #Download src
     python script/update -t $arch;
 
-    #Sed/runtime-patching common.gypi
+    #No use_sysroot in common.gypi via sed
     sed -e "s|'use_sysroot%': 1,|'use_sysroot%': 0,|" \
         -i vendor/chromium/src/build/common.gypi
 
@@ -71,12 +71,19 @@ electron_dist() {
     echo 'Electron CreateDist';
 }
 
-# Main
+#Clean
+clean() {
+    rm -rf $ELECTRON_PATH;
+    rm -rf .tmp;
+}
+
+#Main
 main() {
     #Available FNs
     funcs=$(typeset -f | awk '/ \(\) $/ && !/^(main) / {print $1}');
 
     #Update submodules if this is the first time running the script
+    mkdir -p $ELECTRON_PATH;
     if [[ $(find ./electron/ -maxdepth 1 -type d | wc -l) == 1 ]]; then
         git submodule update --init --recursive
     fi

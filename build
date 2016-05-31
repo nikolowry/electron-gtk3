@@ -41,6 +41,11 @@ main() {
     #Available FNs
     funcs=$(typeset -f | awk '/ \(\) $/ && !/^(main) / {print $1}');
 
+    #Update submodules if this is the first time running the script
+    if [[ $(find ./electron/ -maxdepth 1 -type d | wc -l) == 1 ]]; then
+        git submodule update --init --recursive
+    fi
+    
     #Load ./utils/*.sh helpers
     for f in $(find ${cwd}/utils -name '*.sh'); do
         . $f
@@ -68,11 +73,6 @@ main() {
     #Make sure we use Python 2 - ugh
     if [[ ! $(python --version) =~ 2 ]]; then
         echo 'need set up python 2'
-    fi
-
-    #Update submodules if this is the first time running the script
-    if [[ $(find ./electron/ -maxdepth 1 -type d | wc -l) == 1 ]]; then
-        git submodule update --init --recursive
     fi
 
     #Is Command Function

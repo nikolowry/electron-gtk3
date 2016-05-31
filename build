@@ -53,50 +53,51 @@ main() {
 
     #Parse Command Line Args
     if [[ $@ ]]; then
-        eval $(argsToArray $@)
+        eval $(argsToArray $@);
     fi
 
+    #Help Menu
     if [[ $@ =~ -h|--help ]]; then
-        #Help Menu
         help $funcs;
+        return;
+    fi
+
+    #Get arch type
+    archArg=$(getArg --target_arch);
+    arch64='x64 x86_64 amd64';
+    arch32='ia32 i686';
+
+    if [[ ! $arch64 =~ $archArg && ! $arch32 =~ $archArg ]]; then
+        archArg=$(uname -m);
+    fi
+
+    #Validate arch type
+    if [[ $arch64 =~ $archArg ]]; then
+        arch='x64';
+    elif [[ $arch32  =~ $archArg ]]; then
+        arch='ia32';
+    fi
+
+    #Exit if no arch detected
+    if [[ ! $arch ]]; then
+        echo "Unable to detect architecture type"
+        return
+    fi
+
+    #Is Command Function
+    if [[ $1 && $funcs =~ $1 ]]; then
+        $1
+    #No Command, execute all
     else
-        #Get arch type
-        archArg=$(getArg --target_arch);
-        arch64='x64 x86_64 amd64';
-        arch32='ia32 i686';
+        #Bootstrap, patch and build Libchromiumcontent
+        libchromiumcontent_bootstrap
+        libchromiumcontent_build
+        libchromiumcontent_dist
 
-        if [[ ! $arch64 =~ $archArg && ! $arch32 =~ $archArg ]]; then
-            archArg=$(uname -m);
-        fi
-
-        #Validate arch type
-        if [[ $arch64 =~ $archArg ]]; then
-            arch='x64';
-        elif [[ $arch32  =~ $archArg ]]; then
-            arch='ia32';
-        fi
-
-        #Exit if no arch detected
-        if [[ ! $arch ]]; then
-            echo "Unable to detect architecture type"
-            return
-        fi
-
-        #Is Command Function
-        if [[ $1 && $funcs =~ $1 ]]; then
-            $1
-        #No Command, execute all
-        else
-            #Bootstrap, patch and build Libchromiumcontent
-            libchromiumcontent_bootstrap
-            libchromiumcontent_build
-            libchromiumcontent_dist
-
-            #Bootstrap, patch and build Electron
-            electron_bootstrap
-            electron_build
-            electron_dist
-        fi
+        #Bootstrap, patch and build Electron
+        electron_bootstrap
+        electron_build
+        electron_dist
     fi
 }
 

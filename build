@@ -28,8 +28,6 @@ electron_bootstrap() {
     echo 'Electron Bootstrap'
 }
 electron_build() {
-    cd $cwd/electron/vendor/brightray/
-
     cd $cwd/electron
     echo 'Electron Build'
 }
@@ -42,9 +40,6 @@ electron_dist() {
 main() {
     #Available FNs
     funcs=$(typeset -f | awk '/ \(\) $/ && !/^(main) / {print $1}');
-
-    #Update local Electron and it's submodules
-    git submodule update --init --recursive
 
     #Load ./utils/*.sh helpers
     for f in $(find ${cwd}/utils -name '*.sh'); do
@@ -75,11 +70,19 @@ main() {
         echo 'need set up python 2'
     fi
 
+    #Update submodules if this is the first time running the script
+    if [[ $(find ./electron/ -maxdepth 1 -type d | wc -l) == 1 ]]; then
+        git submodule update --init --recursive
+    fi
+
     #Is Command Function
     if [[ $1 && $funcs =~ $1 ]]; then
         $1
     #No Command, execute all
     else
+        #Always update submodules when running all commands
+        git submodule update --init --recursive
+
         #Bootstrap, patch and build Libchromiumcontent
         libchromiumcontent_bootstrap
         libchromiumcontent_build

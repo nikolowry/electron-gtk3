@@ -81,7 +81,6 @@ main() {
         export PATH=$PYENV_PATH:$OG_PATH
     fi
 
-    echo $(python --version)
     #Is Command Function
     if [[ $1 && $funcs =~ $1 ]]; then
         $1

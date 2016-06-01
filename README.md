@@ -24,6 +24,10 @@ Manually specify what components to build with `-c` or `--components`
 NOTE - The build script will try to auto-detect your machine type if no arch-type flag is passed
 
 ## Gotchas
+##### Wayland
+Chromium built with GTK3 on Wayland will crash due to an xcb input error.  Will need to wait for Chromium to officially fix their builds or integrating some of [`ozone-wayland`](https://github.com/01org/ozone-wayland) patches could be a possible solution.
+
+##### HiDPI
 There is a known issue with Chromium-GTK3 and hidpi machines. Chromium has the DPI for libgtkui hardcoded at 96.  When using `electron-gtk3` in builds for an app you should inform hidpi users to modify the `.desktop` file or create an alias like so (using this repo's built electron path as an example):
 
 `GDK_SCALE=2 GDK_DPI_SCALE=.5 dist/electron --force-device-scale-factor=1.5`

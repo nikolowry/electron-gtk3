@@ -98,13 +98,14 @@ electron_bootstrap() {
 
     #Update toolchain
     sed -e "s|'sysroot%': '<(sysroot)'|'sysroot%': ''|" \
-        -e "s|'--sysroot=<(sysroot)',||" \
         -e "s|'<!(<(source_root)/tools/linux/sysroot_ld_path.sh <(sysroot))',||" \
         -e 's|<(source_root)/tools/linux/pkg-config-wrapper "<(sysroot)" "<(target_arch)" "<(system_libdir)"|pkg-config|' \
         -i toolchain.gypi
 
     #Update brightray
     sed -e "s|'linux_system_libraries': 'gtk+-2.0|'linux_system_libraries': 'gtk+-3.0|" \
+        -e "s|'-latomic',||" \
+        -e "s|'-lpthread',|'-lpthread','-latomic',|" \
         -i vendor/brightray/brightray.gyp
 
     #Local libchromiumcontent flags
@@ -118,7 +119,7 @@ electron_bootstrap() {
 }
 electron_build() {
     cd $ELECTRON_PATH;
-    
+
     if [[ $components == "static" ]]; then
         build_flag="-c R"
     fi
@@ -128,12 +129,18 @@ electron_build() {
 electron_dist() {
     cd $ELECTRON_PATH;
     python script/create-dist.py
+
+    #symlink dist folder to root dir
+    ln -sf $ELECTRON_PATH/dist $CWD/dist
 }
 
 #Clean
 clean() {
+    cd $CWD;
+
     rm -rf $ELECTRON_PATH;
     rm -rf .tmp;
+    rm -rf dist;
 }
 
 #Main
@@ -185,8 +192,8 @@ main() {
 
     #Build components | Defaults to Release
     components=$(getArg --components)
-    if [[ ! $components || $components != 'static' ]]; then
-        components='all'
+    if [[ ! $components || $components != 'all' ]]; then
+        components='static'
     fi
 
     #Is Command Function

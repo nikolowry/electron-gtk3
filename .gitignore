@@ -2,3 +2,4 @@
 .tmp
 electron/**/*
 !electron/package.json
+dist

@@ -1,4 +1,4 @@
 .atomignore
 .tmp
-electron
+electron/**/*
 dist

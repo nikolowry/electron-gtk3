@@ -25,7 +25,10 @@ NOTE - The build script will try to auto-detect your machine type if no arch-typ
 
 ## Gotchas
 ##### Wayland
-Chromium built with GTK3 on Wayland will crash due to an xcb input error.  Will need to wait for Chromium to officially fix their builds or integrating some of [`ozone-wayland`](https://github.com/01org/ozone-wayland) patches could be a possible solution.
+Chromium build with GTK3 will not invoke XWayland while in a Wayland session. You can track the [issue](https://bugs.chromium.org/p/chromium/issues/detail?id=615164) on the Chromium bug tracker. An example command to launch Electron in Wayland would look like so (using this repo's built electron path as an example):
+
+`GDK_BACKEND=x11 dist/electron`
+
 
 ##### HiDPI
 There is a known issue with Chromium-GTK3 and hidpi machines. Chromium has the DPI for libgtkui hardcoded at 96.  When using `electron-gtk3` in builds for an app you should inform hidpi users to modify the `.desktop` file or create an alias like so (using this repo's built electron path as an example):

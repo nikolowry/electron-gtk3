@@ -1,5 +1,4 @@
 .atomignore
 .tmp
-electron/**/*
-!electron/package.json
+electron
 dist

@@ -137,22 +137,20 @@ electron_dist() {
 #Clean
 clean() {
     cd $CWD;
+    rm -rf $ELECTRON_PATH dist;
+}
 
-    rm -rf $ELECTRON_PATH;
-    rm -rf .tmp;
-    rm -rf dist;
+#Update submodules to remote's master
+update() {
+    cd $CWD;
+    mkdir -p $ELECTRON_PATH;
+    git submodule update --remote --init --recursive;
 }
 
 #Main
 main() {
     #Available FNs
     funcs=$(typeset -f | awk '/ \(\) $/ && !/^(main) / {print $1}');
-
-    #Update submodules if this is the first time running the script
-    mkdir -p $ELECTRON_PATH;
-    if [[ $(find ./electron/ -maxdepth 1 -type d | wc -l) == 1 ]]; then
-        git submodule update --init --recursive
-    fi
 
     #Load ./utils/*.sh helpers
     for f in $(find ${CWD}/utils -name '*.sh'); do
@@ -179,7 +177,7 @@ main() {
     fi
 
     #Make sure we use Python 2 - ugh
-    if [[ ! $(python --version) =~ 2 ]]; then
+    if [[ ! $(python --version) =~ "2."  ]]; then
         PYENV_PATH="$CWD/.tmp"
         mkdir -p $PYENV_PATH
 
@@ -201,6 +199,9 @@ main() {
         $1
     #No Command, execute all
     else
+        #update submodules
+        update
+
         #Bootstrap, patch and build Libchromiumcontent
         libchromiumcontent_bootstrap;
         libchromiumcontent_build;

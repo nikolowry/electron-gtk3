@@ -2,10 +2,6 @@
 
 A modern GTK3 build script for [Electron](https://github.com/electron/electron) and [Libchromiumcontent](https://github.com/electron/libchromiumcontent).
 
-Note:
-Chromium has stopped supporting GYP in their latest versions. Ill be waiting for electron to modify their build script to use GN before editing this script
-
-
 ## Quickstart
 ```shell
 $ git clone https://github.com/nikolowry/electron-gtk3
@@ -33,7 +29,6 @@ Chromium build with GTK3 will not invoke XWayland while in a Wayland session. Yo
 
 `GDK_BACKEND=x11 dist/electron`
 
-
 ##### HiDPI
 There is a known issue with Chromium-GTK3 and hidpi machines. Chromium has the DPI for libgtkui hardcoded at 96.  When using `electron-gtk3` in builds for an app you should inform hidpi users to modify the `.desktop` file or create an alias like so (using this repo's built electron path as an example):
 
@@ -41,6 +36,9 @@ There is a known issue with Chromium-GTK3 and hidpi machines. Chromium has the D
 
 ## Status
 Building on Arch Linux, other distros' statuses are unknown.  Please open an issue if you encounter any errors.
+
+#### GN
+Chromium has stopped supporting GYP in versions > 53. I'll be waiting for Electron/Brightray/Libchromiumcontent to modify their build scripts before porting this script to use GN.  
 
 ## Screenshots
 ![screenshot from 2016-05-20 15-54-44](https://cloud.githubusercontent.com/assets/597310/15440824/8a358f5a-1ea5-11e6-9cda-b1f520510bc2.png)

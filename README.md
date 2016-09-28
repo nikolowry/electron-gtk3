@@ -2,6 +2,12 @@
 
 A modern GTK3 build script for [Electron](https://github.com/electron/electron) and [Libchromiumcontent](https://github.com/electron/libchromiumcontent).
 
+---
+Note:
+Chromium has stopped supporting GYP in their latest versions. Ill be waiting for electron to modify their build script to use GN before editing this script
+---
+
+
 ## Quickstart
 ```shell
 $ git clone https://github.com/nikolowry/electron-gtk3

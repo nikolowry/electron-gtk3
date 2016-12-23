@@ -144,9 +144,7 @@ clean() {
 update() {
     cd $CWD;
     mkdir -p $ELECTRON_PATH;
-    if [[ $(find $ELECTRON_PATH -maxdepth 1 -type d | wc -l) == 1 ]]; then
-        git submodule update --remote --init --recursive;
-    fi
+    git submodule update --checkout --recursive
 }
 
 #Main

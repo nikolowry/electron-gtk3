@@ -1,4 +1,6 @@
-# electron-gtk3
+# electron-gtk3 - No Longer Maintained
+
+The script is currently not building. Rather than update it, I advise to keep track of Chromium's GTK3 integration.  In the near future - post v57 - [Chromium will build with GTK3 by default](https://chromium.googlesource.com/chromium/src/+/acc4214c4dece4e70fb53355d557bd45f35965d6/docs/linux_gtk_theme_integration.md#GTK3)
 
 A modern GTK3 build script for [Electron](https://github.com/electron/electron) and [Libchromiumcontent](https://github.com/electron/libchromiumcontent).
 
@@ -35,7 +37,7 @@ There is a known issue with Chromium-GTK3 and hidpi machines. Chromium has the D
 `GDK_SCALE=2 GDK_DPI_SCALE=.5 dist/electron --force-device-scale-factor=1.5`
 
 ## Status
-Building on Arch Linux, other distros' statuses are unknown.  Please open an issue if you encounter any errors.
+No longer building
 
 #### GN
 Chromium has stopped supporting GYP in versions > 53. I'll be waiting for Electron/Brightray/Libchromiumcontent to modify their build scripts before porting this script to use GN.  
